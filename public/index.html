@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Telegram Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+      body {
+        background-color: var(--tg-theme-bg-color, #ffffff);
+        color: var(--tg-theme-text-color, #000000);
+        margin: 0;
+        padding: 16px;
+      }
+
+      .payment-button {
+        display: inline-block;
+        padding: 12px 20px;
+        background-color: var(--tg-theme-button-color, #2481cc);
+        color: var(--tg-theme-button-text-color, #ffffff);
+        text-decoration: none;
+        border-radius: 8px;
+        cursor: pointer;
+        border: none;
+        font-size: 16px;
+        margin-bottom: 16px;
+      }
+
+      .button-container {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Привет, <span id="user-name">Гость</span>!</h1>
+    <div class="button-container">
+      <a
+        href="web+stellar:pay?destination=GBY743WRLF4APZ2D6DSRQBIGVDGME65QIQXONN4E52CEDRCQ2VIMEBSN&amount=10&asset_code=EURMTL&asset_issuer=GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V&memo=Username%3Axdefrag&memo_type=MEMO_TEXT"
+        class="payment-button"
+        >Прямой HREF</a
+      >
+      <button class="payment-button" id="kamni-button">tg.openLink</button>
+      <button class="payment-button" id="kamni-button2">Open blank</button>
+      <button class="payment-button" id="kamni-button3">Call blank</button>
+      <button class="payment-button" id="redirect-button">Через редирект</button>
+    </div>
+    <script>
+      let tg = window.Telegram.WebApp;
+
+      document.getElementById("user-name").innerText =
+        tg.initDataUnsafe?.user?.first_name || "Гость";
+      tg.expand();
+
+      document
+        .getElementById("kamni-button")
+        .addEventListener("click", function () {
+          try {
+            tg.openLink(
+              "web+stellar:pay?destination=GBY743WRLF4APZ2D6DSRQBIGVDGME65QIQXONN4E52CEDRCQ2VIMEBSN&amount=10&asset_code=EURMTL&asset_issuer=GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V&memo=Username%3Axdefrag&memo_type=MEMO_TEXT",
+              { tryBrowser: "safari" },
+            );
+          } catch (error) {
+            console.error("Ошибка:", error);
+            tg.showPopup({
+              title: "Ошибка",
+              message: "Не удалось открыть сайт",
+              buttons: [{ type: "ok" }],
+            });
+          }
+        });
+
+      document
+        .getElementById("kamni-button2")
+        .addEventListener("click", function () {
+          try {
+            window.open(
+              "web+stellar:pay?destination=GBY743WRLF4APZ2D6DSRQBIGVDGME65QIQXONN4E52CEDRCQ2VIMEBSN&amount=10&asset_code=EURMTL&asset_issuer=GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V&memo=Username%3Axdefrag&memo_type=MEMO_TEXT",
+              "_blank",
+            );
+          } catch (error) {
+            console.error("Ошибка:", error);
+            tg.showPopup({
+              title: "Ошибка",
+              message: "Не удалось открыть сайт",
+              buttons: [{ type: "ok" }],
+            });
+          }
+        });
+
+      document
+        .getElementById("kamni-button3")
+        .addEventListener("click", function () {
+          try {
+            window.call(
+              "web+stellar:pay?destination=GBY743WRLF4APZ2D6DSRQBIGVDGME65QIQXONN4E52CEDRCQ2VIMEBSN&amount=10&asset_code=EURMTL&asset_issuer=GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V&memo=Username%3Axdefrag&memo_type=MEMO_TEXT",
+              "_blank",
+            );
+          } catch (error) {
+            console.error("Ошибка:", error);
+            tg.showPopup({
+              title: "Ошибка",
+              message: "Не удалось открыть сайт",
+              buttons: [{ type: "ok" }],
+            });
+          }
+        });
+
+      document
+        .getElementById("redirect-button")
+        .addEventListener("click", function () {
+          try {
+            const stellarUrl = "web+stellar:pay?destination=GBY743WRLF4APZ2D6DSRQBIGVDGME65QIQXONN4E52CEDRCQ2VIMEBSN&amount=10&asset_code=EURMTL&asset_issuer=GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V&memo=Username%3Axdefrag&memo_type=MEMO_TEXT";
+            const redirectUrl = `redirect.html?url=${encodeURIComponent(stellarUrl)}`;
+            tg.openLink(redirectUrl, { tryBrowser: "safari" });
+          } catch (error) {
+            console.error("Ошибка:", error);
+            tg.showPopup({
+              title: "Ошибка",
+              message: "Не удалось открыть сайт",
+              buttons: [{ type: "ok" }],
+            });
+          }
+        });
+    </script>
+  </body>
+</html>

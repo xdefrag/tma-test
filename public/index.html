@@ -44,7 +44,7 @@
   <body>
     <h1>Привет, <span id="user-name">Гость</span>!</h1>
     <div class="button-container">
-      <button class="payment-button" id="openBrowser">Открыть в браузере</button>
+      <button class="payment-button" id="openBrowser">Оплатить через кошелек</button>
     </div>
     <iframe id="payment-iframe" title="Payment"></iframe>
     <script>
@@ -53,6 +53,28 @@
       document.getElementById("user-name").innerText =
         tg.initDataUnsafe?.user?.first_name || "Гость";
       tg.expand();
+
+      // Определяем платформу
+      function detectPlatform() {
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        
+        // Определяем iOS
+        if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
+            return 'ios';
+        }
+        
+        // Определяем Android
+        if (/android/i.test(ua)) {
+            return 'android';
+        }
+        
+        return 'desktop';
+      }
+
+      // Создание Intent URL для открытия страницы в системном браузере
+      function createIntentUrl(url) {
+        return `intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
+      }
 
       // Ссылка для открытия
       const stellarUrl = "web+stellar:pay?destination=GBY743WRLF4APZ2D6DSRQBIGVDGME65QIQXONN4E52CEDRCQ2VIMEBSN&amount=10&asset_code=EURMTL&asset_issuer=GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V&memo=Username%3Axdefrag&memo_type=MEMO_TEXT";
@@ -63,12 +85,26 @@
       // При нажатии на кнопку открываем ссылку во внешнем браузере
       document.getElementById("openBrowser").addEventListener("click", function() {
         try {
-          // Используем промежуточную HTTP страницу, которую Telegram может открыть
+          // Получаем платформу
+          const platform = detectPlatform();
+          console.log("Платформа: " + platform);
+          
           // Создаем URL для страницы redirect.html с закодированной ссылкой
           const redirectUrl = `redirect.html?url=${base64Url}`;
+          const fullRedirectUrl = window.location.origin + "/" + redirectUrl;
+          console.log("URL редиректа: " + fullRedirectUrl);
           
-          // Открываем в системном браузере телефона
-          tg.openLink(window.location.origin + "/" + redirectUrl, { try_instant_view: false });
+          if (platform === 'android') {
+            // Для Android используем Intent URL для открытия редиректа в браузере
+            const intentUrl = createIntentUrl(fullRedirectUrl);
+            console.log("Intent URL: " + intentUrl);
+            
+            // Переходим по Intent URL
+            window.location.href = intentUrl;
+          } else {
+            // Для iOS и десктопа используем обычный openLink
+            tg.openLink(fullRedirectUrl, { try_instant_view: false });
+          }
         } catch (error) {
           console.error("Ошибка при открытии ссылки:", error);
           alert("Ошибка при открытии ссылки: " + error.message);

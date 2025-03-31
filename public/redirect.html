@@ -9,12 +9,28 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
-            const url = urlParams.get('url');
+            const encodedUrl = urlParams.get('url');
             
-            if (url && url.startsWith('web+stellar:')) {
-                window.location.href = url;
+            if (encodedUrl) {
+                try {
+                    // Декодируем URL из base64
+                    const decodedUrl = atob(encodedUrl);
+                    
+                    if (decodedUrl.startsWith('web+stellar:')) {
+                        document.body.innerHTML = 'Открытие ссылки...';
+                        window.location.href = decodedUrl;
+                        console.log(decodedUrl);
+                        console.log(encodedUrl);
+                        console.log(window.location.href);
+                    } else {
+                        document.body.innerHTML = 'Ошибка: Неверный формат ссылки';
+                    }
+                } catch (error) {
+                    console.error('Ошибка декодирования:', error);
+                    document.body.innerHTML = 'Ошибка декодирования ссылки';
+                }
             } else {
-                document.body.innerHTML = 'Ошибка: Неверная ссылка';
+                document.body.innerHTML = 'Ошибка: Отсутствует параметр ссылки';
             }
         });
     </script>

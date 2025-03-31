@@ -112,8 +112,9 @@
         .addEventListener("click", function () {
           try {
             const stellarUrl = "web+stellar:pay?destination=GBY743WRLF4APZ2D6DSRQBIGVDGME65QIQXONN4E52CEDRCQ2VIMEBSN&amount=10&asset_code=EURMTL&asset_issuer=GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V&memo=Username%3Axdefrag&memo_type=MEMO_TEXT";
-            const redirectUrl = `redirect.html?url=${encodeURIComponent(stellarUrl)}`;
-            tg.openLink(redirectUrl, { tryBrowser: "safari" });
+            const base64Url = btoa(stellarUrl);
+            const redirectUrl = `redirect.html?url=${base64Url}`;
+            tg.openLink(redirectUrl, { try_instant_view: false });
           } catch (error) {
             console.error("Ошибка:", error);
             tg.showPopup({

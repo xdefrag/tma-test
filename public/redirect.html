@@ -4,10 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Перенаправление</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 20px;
+            background-color: #0088cc;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
+    <div id="status-message">Подготовка...</div>
+    <div id="manual-open" style="display:none;">
+        <p>Если кошелек не открылся автоматически, нажмите кнопку ниже:</p>
+        <a id="manual-link" class="button">Открыть кошелек</a>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const statusMessage = document.getElementById('status-message');
+            const manualOpen = document.getElementById('manual-open');
+            const manualLink = document.getElementById('manual-link');
             const urlParams = new URLSearchParams(window.location.search);
             const encodedUrl = urlParams.get('url');
             
@@ -17,20 +49,39 @@
                     const decodedUrl = atob(encodedUrl);
                     
                     if (decodedUrl.startsWith('web+stellar:')) {
-                        document.body.innerHTML = 'Открытие ссылки...';
-                        window.location.href = decodedUrl;
-                        console.log(decodedUrl);
-                        console.log(encodedUrl);
-                        console.log(window.location.href);
+                        statusMessage.textContent = 'Открытие кошелька...';
+                        console.log('Декодированная ссылка:', decodedUrl);
+                        
+                        // Устанавливаем ссылку для ручного открытия
+                        manualLink.href = decodedUrl;
+                        manualLink.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            window.open(decodedUrl, '_blank');
+                        });
+                        
+                        // Показываем кнопку ручного открытия через 1.5 секунды
+                        setTimeout(function() {
+                            manualOpen.style.display = 'block';
+                        }, 1500);
+                        
+                        // Пробуем открыть ссылку автоматически
+                        setTimeout(function() {
+                            try {
+                                window.open(decodedUrl, '_blank');
+                            } catch (err) {
+                                console.error('Ошибка при открытии ссылки:', err);
+                                statusMessage.textContent = 'Ошибка при автоматическом открытии. Пожалуйста, используйте кнопку ниже.';
+                            }
+                        }, 500);
                     } else {
-                        document.body.innerHTML = 'Ошибка: Неверный формат ссылки';
+                        statusMessage.textContent = 'Ошибка: Неверный формат ссылки';
                     }
                 } catch (error) {
                     console.error('Ошибка декодирования:', error);
-                    document.body.innerHTML = 'Ошибка декодирования ссылки';
+                    statusMessage.textContent = 'Ошибка декодирования ссылки';
                 }
             } else {
-                document.body.innerHTML = 'Ошибка: Отсутствует параметр ссылки';
+                statusMessage.textContent = 'Ошибка: Отсутствует параметр ссылки';
             }
         });
     </script>

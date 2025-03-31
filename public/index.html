@@ -31,21 +31,22 @@
         flex-direction: column;
         gap: 16px;
       }
+      
+      #payment-iframe {
+        display: none;
+        width: 1px;
+        height: 1px;
+        border: none;
+        position: absolute;
+      }
     </style>
   </head>
   <body>
     <h1>Привет, <span id="user-name">Гость</span>!</h1>
     <div class="button-container">
-      <a
-        href="web+stellar:pay?destination=GBY743WRLF4APZ2D6DSRQBIGVDGME65QIQXONN4E52CEDRCQ2VIMEBSN&amount=10&asset_code=EURMTL&asset_issuer=GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V&memo=Username%3Axdefrag&memo_type=MEMO_TEXT"
-        class="payment-button"
-        >Прямой HREF</a
-      >
-      <button class="payment-button" id="kamni-button">tg.openLink</button>
-      <button class="payment-button" id="kamni-button2">Open blank</button>
-      <button class="payment-button" id="kamni-button3">Call blank</button>
-      <button class="payment-button" id="redirect-button">Через редирект</button>
+      <button class="payment-button" id="openBrowser">Открыть в браузере</button>
     </div>
+    <iframe id="payment-iframe" title="Payment"></iframe>
     <script>
       let tg = window.Telegram.WebApp;
 
@@ -53,77 +54,26 @@
         tg.initDataUnsafe?.user?.first_name || "Гость";
       tg.expand();
 
-      document
-        .getElementById("kamni-button")
-        .addEventListener("click", function () {
-          try {
-            tg.openLink(
-              "web+stellar:pay?destination=GBY743WRLF4APZ2D6DSRQBIGVDGME65QIQXONN4E52CEDRCQ2VIMEBSN&amount=10&asset_code=EURMTL&asset_issuer=GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V&memo=Username%3Axdefrag&memo_type=MEMO_TEXT",
-              { tryBrowser: "safari" },
-            );
-          } catch (error) {
-            console.error("Ошибка:", error);
-            tg.showPopup({
-              title: "Ошибка",
-              message: "Не удалось открыть сайт",
-              buttons: [{ type: "ok" }],
-            });
-          }
-        });
-
-      document
-        .getElementById("kamni-button2")
-        .addEventListener("click", function () {
-          try {
-            window.open(
-              "web+stellar:pay?destination=GBY743WRLF4APZ2D6DSRQBIGVDGME65QIQXONN4E52CEDRCQ2VIMEBSN&amount=10&asset_code=EURMTL&asset_issuer=GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V&memo=Username%3Axdefrag&memo_type=MEMO_TEXT",
-              "_blank",
-            );
-          } catch (error) {
-            console.error("Ошибка:", error);
-            tg.showPopup({
-              title: "Ошибка",
-              message: "Не удалось открыть сайт",
-              buttons: [{ type: "ok" }],
-            });
-          }
-        });
-
-      document
-        .getElementById("kamni-button3")
-        .addEventListener("click", function () {
-          try {
-            window.call(
-              "web+stellar:pay?destination=GBY743WRLF4APZ2D6DSRQBIGVDGME65QIQXONN4E52CEDRCQ2VIMEBSN&amount=10&asset_code=EURMTL&asset_issuer=GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V&memo=Username%3Axdefrag&memo_type=MEMO_TEXT",
-              "_blank",
-            );
-          } catch (error) {
-            console.error("Ошибка:", error);
-            tg.showPopup({
-              title: "Ошибка",
-              message: "Не удалось открыть сайт",
-              buttons: [{ type: "ok" }],
-            });
-          }
-        });
-
-      document
-        .getElementById("redirect-button")
-        .addEventListener("click", function () {
-          try {
-            const stellarUrl = "web+stellar:pay?destination=GBY743WRLF4APZ2D6DSRQBIGVDGME65QIQXONN4E52CEDRCQ2VIMEBSN&amount=10&asset_code=EURMTL&asset_issuer=GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V&memo=Username%3Axdefrag&memo_type=MEMO_TEXT";
-            const base64Url = btoa(stellarUrl);
-            const redirectUrl = `redirect.html?url=${base64Url}`;
-            tg.openLink(redirectUrl, { try_instant_view: false });
-          } catch (error) {
-            console.error("Ошибка:", error);
-            tg.showPopup({
-              title: "Ошибка",
-              message: "Не удалось открыть сайт",
-              buttons: [{ type: "ok" }],
-            });
-          }
-        });
+      // Ссылка для открытия
+      const stellarUrl = "web+stellar:pay?destination=GBY743WRLF4APZ2D6DSRQBIGVDGME65QIQXONN4E52CEDRCQ2VIMEBSN&amount=10&asset_code=EURMTL&asset_issuer=GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V&memo=Username%3Axdefrag&memo_type=MEMO_TEXT";
+      
+      // Кодируем ссылку в base64
+      const base64Url = btoa(stellarUrl);
+      
+      // При нажатии на кнопку открываем ссылку во внешнем браузере
+      document.getElementById("openBrowser").addEventListener("click", function() {
+        try {
+          // Используем промежуточную HTTP страницу, которую Telegram может открыть
+          // Создаем URL для страницы redirect.html с закодированной ссылкой
+          const redirectUrl = `redirect.html?url=${base64Url}`;
+          
+          // Открываем в системном браузере телефона
+          tg.openLink(window.location.origin + "/" + redirectUrl, { try_instant_view: false });
+        } catch (error) {
+          console.error("Ошибка при открытии ссылки:", error);
+          alert("Ошибка при открытии ссылки: " + error.message);
+        }
+      });
     </script>
   </body>
 </html>

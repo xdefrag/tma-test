@@ -3,39 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Перенаправление</title>
+    <title>Открытие кошелька</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             padding: 20px;
             margin: 0;
+            background-color: #f5f5f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
         }
-        .status {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 5px;
+        .container {
+            max-width: 600px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #0088cc;
+            margin-bottom: 20px;
         }
         .button {
             display: inline-block;
-            padding: 10px 20px;
-            margin-top: 20px;
+            padding: 12px 24px;
+            margin: 15px 0;
             background-color: #0088cc;
             color: white;
             border-radius: 5px;
             text-decoration: none;
+            font-weight: bold;
+            border: none;
             cursor: pointer;
+        }
+        .message {
+            margin: 15px 0;
+            padding: 10px;
+            line-height: 1.5;
         }
     </style>
 </head>
 <body>
-    <div id="status-message">Подготовка...</div>
-    <div id="manual-open" style="display:none;">
-        <p>Если кошелек не открылся автоматически, нажмите кнопку ниже:</p>
-        <a id="manual-link" class="button">Открыть кошелек</a>
+    <div class="container">
+        <h1>Открытие кошелька</h1>
+        <div id="status-message" class="message">Пытаемся открыть кошелек...</div>
+        <div id="manual-open" style="display:none;">
+            <p>Если кошелек не открылся автоматически, нажмите кнопку ниже:</p>
+            <a id="manual-link" class="button">Открыть вручную</a>
+        </div>
     </div>
 
     <script>
+        // Функция для попытки открытия ссылки различными способами
+        function tryOpenUrl(url) {
+            console.log("Пытаемся открыть: " + url);
+            
+            // Список способов открытия ссылки
+            const methods = [
+                // Способ 1: Прямой window.location.href
+                function() {
+                    window.location.href = url;
+                    return "window.location.href";
+                },
+                // Способ 2: Создание и клик по ссылке
+                function() {
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.rel = 'external';
+                    a.target = '_blank';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    return "link click";
+                },
+                // Способ 3: Window.open с _blank
+                function() {
+                    window.open(url, '_blank');
+                    return "window.open _blank";
+                },
+                // Способ 4: Window.open с _system
+                function() {
+                    window.open(url, '_system');
+                    return "window.open _system";
+                },
+                // Способ 5: iframe подход
+                function() {
+                    const iframe = document.createElement('iframe');
+                    iframe.style.display = 'none';
+                    iframe.src = url;
+                    document.body.appendChild(iframe);
+                    setTimeout(() => {
+                        document.body.removeChild(iframe);
+                    }, 100);
+                    return "iframe";
+                }
+            ];
+            
+            // Последовательно пробуем каждый метод
+            for (let i = 0; i < methods.length; i++) {
+                try {
+                    const methodName = methods[i]();
+                    console.log("Метод сработал: " + methodName);
+                } catch (e) {
+                    console.error("Ошибка метода " + i + ": ", e);
+                }
+            }
+        }
+        
         document.addEventListener('DOMContentLoaded', function() {
             const statusMessage = document.getElementById('status-message');
             const manualOpen = document.getElementById('manual-open');
@@ -47,32 +126,25 @@
                 try {
                     // Декодируем URL из base64
                     const decodedUrl = atob(encodedUrl);
+                    console.log("Декодированный URL: " + decodedUrl);
                     
                     if (decodedUrl.startsWith('web+stellar:')) {
-                        statusMessage.textContent = 'Открытие кошелька...';
-                        console.log('Декодированная ссылка:', decodedUrl);
-                        
                         // Устанавливаем ссылку для ручного открытия
                         manualLink.href = decodedUrl;
                         manualLink.addEventListener('click', function(e) {
                             e.preventDefault();
-                            window.open(decodedUrl, '_blank');
+                            tryOpenUrl(decodedUrl);
                         });
                         
-                        // Показываем кнопку ручного открытия через 1.5 секунды
+                        // Показываем кнопку ручного открытия
                         setTimeout(function() {
                             manualOpen.style.display = 'block';
-                        }, 1500);
+                        }, 1000);
                         
                         // Пробуем открыть ссылку автоматически
                         setTimeout(function() {
-                            try {
-                                window.open(decodedUrl, '_blank');
-                            } catch (err) {
-                                console.error('Ошибка при открытии ссылки:', err);
-                                statusMessage.textContent = 'Ошибка при автоматическом открытии. Пожалуйста, используйте кнопку ниже.';
-                            }
-                        }, 500);
+                            tryOpenUrl(decodedUrl);
+                        }, 300);
                     } else {
                         statusMessage.textContent = 'Ошибка: Неверный формат ссылки';
                     }
